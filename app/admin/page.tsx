@@ -18,7 +18,7 @@ export default async function AdminPage() {
   }
 
   const players = await fetchPlayersOrdered();
-  const users = viewer.role === "owner" ? await listProfilesAdminView() : [];
+  const users = await listProfilesAdminView();
 
-  return <AdminPanel initialPlayers={players} users={users} viewerRole={viewer.role} />;
+  return <AdminPanel initialPlayers={players} users={users} viewerRole={viewer.role} viewerId={viewer.id} />;
 }

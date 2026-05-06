@@ -8,13 +8,20 @@ export function AdminPanel({
   initialPlayers,
   users,
   viewerRole,
+  viewerId,
 }: {
   initialPlayers: Player[];
   users: AuthUser[];
   viewerRole: Role;
+  viewerId: string;
 }) {
   const [players, setPlayers] = useState(initialPlayers);
+  const [members, setMembers] = useState(users);
   const [status, setStatus] = useState<{ type: "idle" | "error" | "success"; message: string }>({
+    type: "idle",
+    message: "",
+  });
+  const [memberStatus, setMemberStatus] = useState<{ type: "idle" | "error" | "success"; message: string }>({
     type: "idle",
     message: "",
   });
@@ -50,6 +57,35 @@ export function AdminPanel({
       // ignore parsing error
     }
     setStatus({ type: "error", message });
+  };
+
+  const canDeleteMember = (member: AuthUser) => {
+    if (member.id === viewerId) return false;
+    if (viewerRole === "owner") return true;
+    return member.role === "user";
+  };
+
+  const deleteMember = async (member: AuthUser) => {
+    setMemberStatus({ type: "idle", message: "" });
+    const res = await fetch(`/api/users?id=${encodeURIComponent(member.id)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      setMembers((prev) => prev.filter((u) => u.id !== member.id));
+      setMemberStatus({ type: "success", message: `Deleted ${member.username}.` });
+      return;
+    }
+
+    let message = "Delete failed.";
+    try {
+      const data = (await res.json()) as { error?: string };
+      if (data?.error) message = data.error;
+    } catch {
+      // ignore parsing error
+    }
+    setMemberStatus({ type: "error", message });
   };
 
   return (
@@ -96,18 +132,39 @@ export function AdminPanel({
         </div>
       </section>
 
-      {viewerRole === "owner" ? (
+      {viewerRole === "owner" || viewerRole === "admin" ? (
         <section className="rounded-2xl border border-border bg-card p-4 lg:col-span-3">
           <h2 className="font-heading text-xl">Users / Roles</h2>
           <div className="mt-3 grid gap-2 md:grid-cols-2">
-            {users.map((user) => (
+            {members.map((user) => (
               <div key={user.id} className="rounded border border-border bg-muted p-3 text-sm">
                 <p>{user.username}</p>
                 <p className="text-zinc-400">{user.email}</p>
-                <p className="uppercase tracking-wider text-blue-300">{user.role}</p>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p className="uppercase tracking-wider text-blue-300">{user.role}</p>
+                  {canDeleteMember(user) ? (
+                    <button
+                      className="rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white"
+                      onClick={() => deleteMember(user)}
+                    >
+                      Delete member
+                    </button>
+                  ) : null}
+                </div>
               </div>
             ))}
           </div>
+          {memberStatus.type !== "idle" ? (
+            <p
+              className={`mt-3 rounded px-3 py-2 text-sm ${
+                memberStatus.type === "error"
+                  ? "border border-red-400/40 bg-red-500/10 text-red-200"
+                  : "border border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+              }`}
+            >
+              {memberStatus.message}
+            </p>
+          ) : null}
         </section>
       ) : null}
     </main>
