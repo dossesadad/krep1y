@@ -30,13 +30,13 @@ export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
   return (
     <section className="mx-auto w-full max-w-6xl">
       <div className="rounded-xl border border-[#20294b] bg-[#0b122a] px-4 py-10 text-center">
-        <h1 className="font-heading text-6xl font-bold leading-[0.95] text-zinc-100">
-          Crystal PvP
+        <h1 className="font-heading text-7xl font-bold leading-[0.9] text-zinc-100 md:text-8xl">
+          GEORGIAN
           <br />
           <span className="bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent">Tier List</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-zinc-400">
-          The definitive ranking of Minecraft Crystal PvP players.
+        <p className="mx-auto mt-4 max-w-2xl text-sm text-zinc-400">
+          best georgian tier list website
         </p>
         <div className="mt-5 flex items-center justify-center gap-4">
           <button className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-900/50">
