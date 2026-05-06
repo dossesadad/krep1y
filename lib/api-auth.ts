@@ -22,7 +22,19 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profileError || !profile) return null;
+  if (profileError || !profile) {
+    const fallbackUsername =
+      (user.user_metadata?.username as string | undefined) ||
+      (user.user_metadata?.name as string | undefined) ||
+      (user.email?.split("@")[0] ?? "player");
+
+    return {
+      id: user.id,
+      email: user.email ?? "",
+      username: fallbackUsername,
+      role: "user",
+    };
+  }
 
   return {
     id: user.id,
