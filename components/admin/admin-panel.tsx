@@ -14,9 +14,14 @@ export function AdminPanel({
   viewerRole: Role;
 }) {
   const [players, setPlayers] = useState(initialPlayers);
+  const [status, setStatus] = useState<{ type: "idle" | "error" | "success"; message: string }>({
+    type: "idle",
+    message: "",
+  });
 
   const submitPlayer = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setStatus({ type: "idle", message: "" });
     const form = new FormData(e.currentTarget);
     const payload = {
       username: String(form.get("username")),
@@ -26,13 +31,25 @@ export function AdminPanel({
     };
     const res = await fetch("/api/players", {
       method: "POST",
+      credentials: "include",
       body: JSON.stringify(payload),
     });
     if (res.ok) {
       const next = (await res.json()) as Player;
       setPlayers((p) => [...p, next]);
       e.currentTarget.reset();
+      setStatus({ type: "success", message: "Player saved successfully." });
+      return;
     }
+
+    let message = "Saving failed.";
+    try {
+      const data = (await res.json()) as { error?: string };
+      if (data?.error) message = data.error;
+    } catch {
+      // ignore parsing error
+    }
+    setStatus({ type: "error", message });
   };
 
   return (
@@ -52,6 +69,17 @@ export function AdminPanel({
           </select>
           <button className="rounded bg-blue-600 p-2 font-semibold text-white">Save Player</button>
         </form>
+        {status.type !== "idle" ? (
+          <p
+            className={`mt-3 rounded px-3 py-2 text-sm ${
+              status.type === "error"
+                ? "border border-red-400/40 bg-red-500/10 text-red-200"
+                : "border border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+            }`}
+          >
+            {status.message}
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-4 lg:col-span-2">
