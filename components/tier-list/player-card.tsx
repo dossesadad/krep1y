@@ -8,11 +8,13 @@ export function PlayerCard({
   rank,
   showTier = true,
   showModeBadges = false,
+  totalPoints,
 }: {
   player: Player;
   rank?: number;
   showTier?: boolean;
   showModeBadges?: boolean;
+  totalPoints?: number;
 }) {
   return (
     <article
@@ -42,9 +44,18 @@ export function PlayerCard({
           </div>
         ) : null}
       </div>
-      {player.region ? (
-        <span className="rounded bg-[#1f2b56] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-200">{player.region}</span>
-      ) : null}
+      <div className="flex flex-col items-end gap-1">
+        {typeof totalPoints === "number" ? (
+          <span className="rounded bg-[#29487c] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
+            {totalPoints} pts
+          </span>
+        ) : null}
+        {player.region ? (
+          <span className="rounded bg-[#1f2b56] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-200">
+            {player.region}
+          </span>
+        ) : null}
+      </div>
     </article>
   );
 }

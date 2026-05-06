@@ -6,7 +6,7 @@ import { GameMode, Player, Tier } from "@/types";
 import { GAME_MODE_LABELS, GAME_MODE_ORDER, TIER_COLORS, TIER_ORDER } from "@/lib/constants";
 import { PlayerCard } from "@/components/tier-list/player-card";
 import { Trophy } from "lucide-react";
-import { comparePlayersForOverall, resolveDisplayTier } from "@/lib/ranking";
+import { comparePlayersForOverall, getTotalPoints, resolveDisplayTier } from "@/lib/ranking";
 
 export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
   const [mode, setMode] = useState<GameMode>("overall");
@@ -57,7 +57,7 @@ export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-[#20294b] bg-[#0b122a] p-2 md:grid-cols-9">
+      <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-[#20294b] bg-[#0b122a] p-2 md:grid-cols-10">
         {GAME_MODE_ORDER.map((m) => (
           <button
             key={m}
@@ -81,6 +81,11 @@ export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
             {GAME_MODE_LABELS[m]}
           </button>
         ))}
+        <div className="rounded-lg border border-[#2a3155] bg-[#111935] px-2 py-2 text-[10px] leading-4 text-zinc-300">
+          <p className="mb-1 text-xs font-semibold text-zinc-100">Status</p>
+          <p>HT1 60 | LT1 45 | HT2 30 | LT2 20 | HT3 10</p>
+          <p>LT3 6 | HT4 4 | LT4 3 | HT5 2 | LT5 1</p>
+        </div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -95,7 +100,13 @@ export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
         </div>
         <div className="grid gap-2 rounded-xl border border-[#20294b] bg-[#0b122a] p-3">
           {rankedPlayers.map((player, index) => (
-            <PlayerCard key={player.id} player={player} rank={index + 1} showModeBadges={mode === "overall"} />
+            <PlayerCard
+              key={player.id}
+              player={player}
+              rank={index + 1}
+              showModeBadges={mode === "overall"}
+              totalPoints={mode === "overall" ? getTotalPoints(player) : undefined}
+            />
           ))}
         </div>
       </div>

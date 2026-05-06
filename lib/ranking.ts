@@ -1,6 +1,19 @@
 import { MODE_WITHOUT_OVERALL, TIER_ORDER } from "@/lib/constants";
 import { GameMode, Player, Tier } from "@/types";
 
+export const TIER_POINTS: Record<Tier, number> = {
+  HT1: 60,
+  LT1: 45,
+  HT2: 30,
+  LT2: 20,
+  HT3: 10,
+  LT3: 6,
+  HT4: 4,
+  LT4: 3,
+  HT5: 2,
+  LT5: 1,
+};
+
 function tierVectorForPlayer(player: Player): number[] {
   const counts = new Array(TIER_ORDER.length).fill(0);
   for (const mode of MODE_WITHOUT_OVERALL) {
@@ -12,7 +25,20 @@ function tierVectorForPlayer(player: Player): number[] {
   return counts;
 }
 
+export function getTotalPoints(player: Player): number {
+  let points = 0;
+  for (const mode of MODE_WITHOUT_OVERALL) {
+    const tier = player.modeTiers[mode];
+    if (!tier) continue;
+    points += TIER_POINTS[tier];
+  }
+  return points;
+}
+
 export function comparePlayersForOverall(a: Player, b: Player) {
+  const pointsDiff = getTotalPoints(b) - getTotalPoints(a);
+  if (pointsDiff !== 0) return pointsDiff;
+
   const av = tierVectorForPlayer(a);
   const bv = tierVectorForPlayer(b);
   for (let i = 0; i < TIER_ORDER.length; i += 1) {
