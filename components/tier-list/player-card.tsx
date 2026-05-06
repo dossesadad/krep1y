@@ -1,15 +1,18 @@
 "use client";
 
 import { Player } from "@/types";
+import { MODE_WITHOUT_OVERALL } from "@/lib/constants";
 
 export function PlayerCard({
   player,
   rank,
   showTier = true,
+  showModeBadges = false,
 }: {
   player: Player;
   rank?: number;
   showTier?: boolean;
+  showModeBadges?: boolean;
 }) {
   return (
     <article
@@ -27,6 +30,17 @@ export function PlayerCard({
           ) : null}
         </div>
         <p className="truncate text-[11px] text-zinc-400">{player.description}</p>
+        {showModeBadges ? (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {MODE_WITHOUT_OVERALL.map((mode) =>
+              player.modeTiers[mode] ? (
+                <span key={mode} className="rounded bg-[#24376b] px-1.5 py-0.5 text-[10px] uppercase text-zinc-200">
+                  {mode}:{player.modeTiers[mode]}
+                </span>
+              ) : null,
+            )}
+          </div>
+        ) : null}
       </div>
       {player.region ? (
         <span className="rounded bg-[#1f2b56] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-200">{player.region}</span>

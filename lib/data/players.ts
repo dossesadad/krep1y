@@ -1,21 +1,42 @@
 import { createSupabaseAnonClient } from "@/lib/supabase/anon";
-import { Player, Tier } from "@/types";
+import { MODE_WITHOUT_OVERALL } from "@/lib/constants";
+import { resolveDisplayTier } from "@/lib/ranking";
+import { GameMode, Player, Tier } from "@/types";
 
 type PlayerRow = {
   id: string;
   username: string;
-  tier: string;
   region: string | null;
   description: string | null;
 };
 
-export function mapPlayerRow(row: PlayerRow): Player {
+type PlayerTierRow = {
+  player_id: string;
+  mode: Exclude<GameMode, "overall">;
+  tier: Tier;
+};
+
+function mapPlayerRow(row: PlayerRow, modeTiers: Partial<Record<Exclude<GameMode, "overall">, Tier>>): Player {
+  const player: Player = {
+    id: row.id,
+    username: row.username,
+    region: row.region ?? undefined,
+    description: row.description ?? "",
+    modeTiers,
+    tier: "LT5",
+  };
+  player.tier = resolveDisplayTier(player, "overall");
+  return player;
+}
+
+export function mapApiPlayerRow(row: PlayerRow): Player {
   return {
     id: row.id,
     username: row.username,
-    tier: row.tier as Tier,
     region: row.region ?? undefined,
     description: row.description ?? "",
+    modeTiers: {},
+    tier: "LT5",
   };
 }
 
@@ -30,11 +51,32 @@ export async function fetchPlayersOrdered(): Promise<Player[]> {
   const supabase = createSupabaseAnonClient();
   const { data, error } = await supabase
     .from("players")
-    .select("id, username, tier, region, description")
+    .select("id, username, region, description")
     .order("username", { ascending: true });
 
   if (error) {
     throw new Error(formatSupabaseError(error));
   }
-  return (data as PlayerRow[] | null)?.map(mapPlayerRow) ?? [];
+
+  const players = (data as PlayerRow[] | null) ?? [];
+  const playerIds = players.map((p) => p.id);
+
+  const { data: tierRows, error: tiersError } = await supabase
+    .from("player_mode_tiers")
+    .select("player_id, mode, tier")
+    .in("player_id", playerIds.length ? playerIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (tiersError) {
+    throw new Error(formatSupabaseError(tiersError));
+  }
+
+  const tierMap = new Map<string, Partial<Record<Exclude<GameMode, "overall">, Tier>>>();
+  for (const r of (tierRows as PlayerTierRow[] | null) ?? []) {
+    if (!MODE_WITHOUT_OVERALL.includes(r.mode)) continue;
+    const existing = tierMap.get(r.player_id) ?? {};
+    existing[r.mode] = r.tier;
+    tierMap.set(r.player_id, existing);
+  }
+
+  return players.map((row) => mapPlayerRow(row, tierMap.get(row.id) ?? {}));
 }

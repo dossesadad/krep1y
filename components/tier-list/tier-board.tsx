@@ -1,31 +1,41 @@
 "use client";
 
-import { useMemo } from "react";
-import { Player, Tier } from "@/types";
-import { TIER_COLORS, TIER_ORDER } from "@/lib/constants";
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import { GameMode, Player, Tier } from "@/types";
+import { GAME_MODE_LABELS, GAME_MODE_ORDER, TIER_COLORS, TIER_ORDER } from "@/lib/constants";
 import { PlayerCard } from "@/components/tier-list/player-card";
 import { Trophy } from "lucide-react";
+import { comparePlayersForOverall, resolveDisplayTier } from "@/lib/ranking";
 
 export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
+  const [mode, setMode] = useState<GameMode>("overall");
   const players = initialPlayers;
+  const playersWithDisplayTier = useMemo(
+    () => players.map((p) => ({ ...p, tier: resolveDisplayTier(p, mode) })),
+    [players, mode],
+  );
 
   const grouped = useMemo(() => {
     return TIER_ORDER.reduce<Record<Tier, Player[]>>(
       (acc, tier) => {
-        acc[tier] = players.filter((p) => p.tier === tier);
+        acc[tier] = playersWithDisplayTier.filter((p) => p.tier === tier);
         return acc;
       },
       {} as Record<Tier, Player[]>,
     );
-  }, [players]);
+  }, [playersWithDisplayTier]);
 
   const rankedPlayers = useMemo(() => {
-    return [...players].sort((a, b) => {
+    if (mode === "overall") {
+      return [...playersWithDisplayTier].sort(comparePlayersForOverall);
+    }
+    return [...playersWithDisplayTier].sort((a, b) => {
       const byTier = TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier);
       if (byTier !== 0) return byTier;
       return a.username.localeCompare(b.username);
     });
-  }, [players]);
+  }, [playersWithDisplayTier, mode]);
 
   return (
     <section className="mx-auto w-full max-w-6xl">
@@ -47,6 +57,32 @@ export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
         </div>
       </div>
 
+      <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-[#20294b] bg-[#0b122a] p-2 md:grid-cols-9">
+        {GAME_MODE_ORDER.map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={`rounded-lg border px-2 py-2 text-center text-xs font-semibold ${
+              mode === m
+                ? "border-zinc-100 bg-[#162349] text-zinc-100"
+                : "border-[#2a3155] bg-[#111935] text-zinc-400"
+            }`}
+          >
+            <Image
+              src={`/${GAME_MODE_LABELS[m]}.png`}
+              alt={GAME_MODE_LABELS[m]}
+              width={20}
+              height={20}
+              className="mx-auto mb-1 h-5 w-5 object-contain"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+            {GAME_MODE_LABELS[m]}
+          </button>
+        ))}
+      </div>
+
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
         {TIER_ORDER.map((tier) => (
           <TierStatCard key={tier} tier={tier} count={grouped[tier]?.length ?? 0} />
@@ -59,7 +95,7 @@ export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
         </div>
         <div className="grid gap-2 rounded-xl border border-[#20294b] bg-[#0b122a] p-3">
           {rankedPlayers.map((player, index) => (
-            <PlayerCard key={player.id} player={player} rank={index + 1} />
+            <PlayerCard key={player.id} player={player} rank={index + 1} showModeBadges={mode === "overall"} />
           ))}
         </div>
       </div>

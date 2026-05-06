@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { AuthUser, Player, Role, Tier } from "@/types";
-import { TIER_ORDER } from "@/lib/constants";
+import { GAME_MODE_LABELS, MODE_WITHOUT_OVERALL, TIER_ORDER } from "@/lib/constants";
 
 export function AdminPanel({
   initialPlayers,
@@ -38,7 +38,14 @@ export function AdminPanel({
       username: String(form.get("username")),
       description: String(form.get("description")),
       region: String(form.get("region") || ""),
-      tier: String(form.get("tier")) as Tier,
+      modeTiers: MODE_WITHOUT_OVERALL.reduce<Record<string, Tier>>((acc, mode) => {
+        const checked = form.get(`mode_${mode}`) === "on";
+        const tier = String(form.get(`tier_${mode}`) || "");
+        if (checked && TIER_ORDER.includes(tier as Tier)) {
+          acc[mode] = tier as Tier;
+        }
+        return acc;
+      }, {}),
     };
     const res = await fetch("/api/players", {
       method: "POST",
@@ -123,13 +130,24 @@ export function AdminPanel({
           <input required name="username" className="rounded border border-border bg-muted p-2" placeholder="Username" />
           <input name="region" className="rounded border border-border bg-muted p-2" placeholder="Region (optional)" />
           <input required name="description" className="rounded border border-border bg-muted p-2" placeholder="Description" />
-          <select name="tier" className="rounded border border-border bg-muted p-2" defaultValue="LT4">
-            {TIER_ORDER.map((tier) => (
-              <option key={tier} value={tier}>
-                {tier}
-              </option>
-            ))}
-          </select>
+          <div className="rounded border border-border bg-muted p-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-300">Game modes + tiers</p>
+            <div className="grid gap-2 md:grid-cols-2">
+              {MODE_WITHOUT_OVERALL.map((mode) => (
+                <label key={mode} className="flex items-center gap-2 rounded border border-[#2a3155] bg-[#111935] p-2">
+                  <input type="checkbox" name={`mode_${mode}`} className="accent-violet-500" />
+                  <span className="min-w-16 text-xs text-zinc-200">{GAME_MODE_LABELS[mode]}</span>
+                  <select name={`tier_${mode}`} className="flex-1 rounded border border-border bg-[#0b122a] p-1 text-xs">
+                    {TIER_ORDER.map((tier) => (
+                      <option key={tier} value={tier}>
+                        {tier}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          </div>
           <button className="rounded bg-blue-600 p-2 font-semibold text-white">Save Player</button>
         </form>
         {status.type !== "idle" ? (
@@ -152,7 +170,7 @@ export function AdminPanel({
             <article key={player.id} className="rounded border border-border bg-muted p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold">
-                  {player.username} <span className="text-xs text-zinc-400">({player.tier})</span>
+                  {player.username} <span className="text-xs text-zinc-400">(overall: {player.tier})</span>
                 </p>
                 <button
                   className="rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white"
@@ -162,6 +180,9 @@ export function AdminPanel({
                 </button>
               </div>
               <p className="text-sm text-zinc-300">{player.description}</p>
+              <p className="mt-1 text-xs text-zinc-400">
+                {MODE_WITHOUT_OVERALL.map((m) => `${GAME_MODE_LABELS[m]}:${player.modeTiers[m] ?? "-"}`).join(" | ")}
+              </p>
             </article>
           ))}
         </div>
