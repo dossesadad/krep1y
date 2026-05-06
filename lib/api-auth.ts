@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Role } from "@/types";
 
 export type SessionUser = {
@@ -16,13 +17,42 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   } = await supabase.auth.getUser();
   if (userError || !user) return null;
 
-  const { data: profile, error: profileError } = await supabase
+  const admin = createSupabaseAdminClient();
+  const { data: byIdProfile, error: byIdError } = await admin
     .from("profiles")
-    .select("username, role")
+    .select("id, username, role, email")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profileError || !profile) {
+  if (!byIdError && byIdProfile) {
+    return {
+      id: user.id,
+      email: user.email ?? "",
+      username: (byIdProfile.username as string) ?? user.email?.split("@")[0] ?? "player",
+      role: ((byIdProfile.role as Role) ?? "user"),
+    };
+  }
+
+  if (user.email) {
+    const { data: byEmailProfile } = await admin
+      .from("profiles")
+      .select("id, username, role, email")
+      .eq("email", user.email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (byEmailProfile) {
+      return {
+        id: user.id,
+        email: user.email,
+        username: (byEmailProfile.username as string) ?? user.email.split("@")[0],
+        role: ((byEmailProfile.role as Role) ?? "user"),
+      };
+    }
+  }
+
+  {
     const fallbackUsername =
       (user.user_metadata?.username as string | undefined) ||
       (user.user_metadata?.name as string | undefined) ||
@@ -35,13 +65,6 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       role: "user",
     };
   }
-
-  return {
-    id: user.id,
-    email: user.email ?? "",
-    username: profile.username as string,
-    role: profile.role as Role,
-  };
 }
 
 export async function requireRole(allowed: Role[]): Promise<SessionUser | null> {
