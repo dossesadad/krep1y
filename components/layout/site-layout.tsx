@@ -2,13 +2,21 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { Moon, Search, Sun, Trophy } from "lucide-react";
 import { useAuth, useUi } from "@/components/providers/app-providers";
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   const { t, lang, setLang, theme, toggleTheme } = useUi();
   const { user } = useAuth();
+  const router = useRouter();
   const canSeeAdmin = user?.role === "admin" || user?.role === "owner";
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.refresh();
+    router.push("/");
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -37,6 +45,17 @@ export function SiteLayout({ children }: { children: ReactNode }) {
                 </Link>
               </>
             )}
+            {user ? (
+              <div className="ml-2 inline-flex items-center gap-2 rounded-md border border-[#2a335b] bg-[#101938] px-2 py-1 text-xs">
+                <span className="text-zinc-200">
+                  Signed in as <span className="font-semibold">{user.username}</span>
+                </span>
+                <span className="rounded bg-[#1f2b56] px-1.5 py-0.5 uppercase text-[10px] text-zinc-200">{user.role}</span>
+                <button className="rounded bg-[#1a2347] px-2 py-0.5 text-zinc-200 hover:bg-[#24305f]" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            ) : null}
           </nav>
           <div className="flex items-center gap-2">
             <div className="hidden items-center gap-1 rounded-md border border-[#222b4d] bg-[#0f1732] px-2 py-1 text-xs text-zinc-400 lg:flex">
