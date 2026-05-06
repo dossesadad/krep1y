@@ -38,6 +38,30 @@ export function AppProviders({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle("light", theme === "light");
   }, [theme]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSessionUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!res.ok) {
+          if (isMounted) setUser(null);
+          return;
+        }
+        const data = (await res.json()) as AuthUser | { user: AuthUser | null };
+        const nextUser = "user" in data ? data.user : data;
+        if (isMounted) setUser(nextUser ?? null);
+      } catch {
+        if (isMounted) setUser(null);
+      }
+    };
+
+    loadSessionUser();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const t = useCallback((key: keyof typeof en) => dictionary[lang][key] ?? key, [lang]);
 
   const uiValue = useMemo(

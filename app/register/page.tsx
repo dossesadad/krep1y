@@ -36,6 +36,8 @@ export default function RegisterPage() {
         <input name="password" type="password" placeholder={t("auth.password")} className="w-full rounded border border-border bg-muted p-2" />
         {error ? <p className="text-sm text-red-400">{error}</p> : null}
         <button className="w-full rounded bg-blue-600 p-2 font-semibold text-white">{t("auth.signUp")}</button>
+        <a href="/api/auth/oauth?provider=google" className="block rounded border border-border p-2 text-center">{t("auth.google")}</a>
+        <a href="/api/auth/oauth?provider=discord" className="block rounded border border-border p-2 text-center">{t("auth.discord")}</a>
       </form>
     </main>
   );

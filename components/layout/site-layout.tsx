@@ -8,6 +8,7 @@ import { useAuth, useUi } from "@/components/providers/app-providers";
 export function SiteLayout({ children }: { children: ReactNode }) {
   const { t, lang, setLang, theme, toggleTheme } = useUi();
   const { user } = useAuth();
+  const canSeeAdmin = user?.role === "admin" || user?.role === "owner";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -21,9 +22,11 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             <Link className="rounded-md px-2 py-1 hover:bg-[#1a2347]" href="/">
               {t("nav.home")}
             </Link>
-            <Link className="rounded-md px-2 py-1 hover:bg-[#1a2347]" href="/admin">
-              {t("nav.admin")}
-            </Link>
+            {canSeeAdmin ? (
+              <Link className="rounded-md px-2 py-1 hover:bg-[#1a2347]" href="/admin">
+                {t("nav.admin")}
+              </Link>
+            ) : null}
             {!user && (
               <>
                 <Link className="rounded-md px-2 py-1 hover:bg-[#1a2347]" href="/login">
