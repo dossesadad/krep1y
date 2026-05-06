@@ -6,7 +6,7 @@ import { useAuth, useUi } from "@/components/providers/app-providers";
 
 export default function LoginPage() {
   const { t } = useUi();
-  const { setUser } = useAuth();
+  const { setUser, refreshUser } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "include",
         body: JSON.stringify({
           email: form.get("email"),
           password: form.get("password"),
@@ -29,11 +30,12 @@ export default function LoginPage() {
         return;
       }
 
-      const me = await fetch("/api/auth/me", { cache: "no-store" });
+      const me = await fetch("/api/auth/me", { cache: "no-store", credentials: "include" });
       if (me.ok) {
         const data = (await me.json()) as { user: { id: string; email: string; username: string; role: "user" | "admin" | "owner" } | null };
         setUser(data.user);
       }
+      await refreshUser();
 
       router.push("/");
       router.refresh();

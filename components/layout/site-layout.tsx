@@ -8,12 +8,14 @@ import { useAuth, useUi } from "@/components/providers/app-providers";
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   const { t, lang, setLang, theme, toggleTheme } = useUi();
-  const { user } = useAuth();
+  const { user, refreshUser, setUser } = useAuth();
   const router = useRouter();
   const canSeeAdmin = user?.role === "admin" || user?.role === "owner";
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    setUser(null);
+    await refreshUser();
     router.refresh();
     router.push("/");
   };

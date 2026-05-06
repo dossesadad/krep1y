@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import en from "@/lib/i18n/en.json";
 import ka from "@/lib/i18n/ka.json";
 import { AuthUser } from "@/types";
@@ -27,9 +28,11 @@ const UiContext = createContext<{
 const AuthContext = createContext<{
   user: AuthUser | null;
   setUser: (user: AuthUser | null) => void;
-}>({ user: null, setUser: () => undefined });
+  refreshUser: () => Promise<void>;
+}>({ user: null, setUser: () => undefined, refreshUser: async () => undefined });
 
 export function AppProviders({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [lang, setLang] = useState<Lang>("en");
   const [theme, setTheme] = useState<Theme>("dark");
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -38,29 +41,39 @@ export function AppProviders({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle("light", theme === "light");
   }, [theme]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadSessionUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (!res.ok) {
-          if (isMounted) setUser(null);
-          return;
-        }
-        const data = (await res.json()) as AuthUser | { user: AuthUser | null };
-        const nextUser = "user" in data ? data.user : data;
-        if (isMounted) setUser(nextUser ?? null);
-      } catch {
-        if (isMounted) setUser(null);
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me", {
+        cache: "no-store",
+        credentials: "include",
+        headers: { "cache-control": "no-store" },
+      });
+      if (!res.ok) {
+        setUser(null);
+        return;
       }
-    };
-
-    loadSessionUser();
-    return () => {
-      isMounted = false;
-    };
+      const data = (await res.json()) as AuthUser | { user: AuthUser | null };
+      const nextUser = "user" in data ? data.user : data;
+      setUser(nextUser ?? null);
+    } catch {
+      setUser(null);
+    }
   }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void refreshUser();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [pathname, refreshUser]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      void refreshUser();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refreshUser]);
 
   const t = useCallback((key: keyof typeof en) => dictionary[lang][key] ?? key, [lang]);
 
@@ -76,7 +89,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   );
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, refreshUser }}>
       <UiContext.Provider value={uiValue}>
         <SiteLayout>{children}</SiteLayout>
       </UiContext.Provider>
