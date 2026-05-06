@@ -15,7 +15,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-3 px-4">
           <Link href="/" className="flex items-center gap-2 font-heading text-xl font-bold tracking-wide">
             <Trophy size={16} className="text-yellow-300" />
-            <span className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">CRYSTALTIERS</span>
+            <span className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">GEORGIAN TIER LIST</span>
           </Link>
           <nav className="hidden items-center gap-1 text-sm text-zinc-300 md:flex">
             <Link className="rounded-md px-2 py-1 hover:bg-[#1a2347]" href="/">
@@ -56,3 +56,4 @@ export function SiteLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

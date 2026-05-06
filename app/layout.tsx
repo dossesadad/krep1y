@@ -15,8 +15,8 @@ const body = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Crystal Tiers",
-  description: "Minecraft Crystal PvP tier list platform.",
+  title: "Georgian Tier List",
+  description: "Georgian Minecraft Crystal PvP tier list platform.",
 };
 
 export default function RootLayout({
@@ -30,3 +30,4 @@ export default function RootLayout({
     </html>
   );
 }
+
