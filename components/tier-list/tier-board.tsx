@@ -11,10 +11,14 @@ import { comparePlayersForOverall, getTotalPoints, resolveDisplayTier } from "@/
 export function TierBoard({ initialPlayers }: { initialPlayers: Player[] }) {
   const [mode, setMode] = useState<GameMode>("overall");
   const players = initialPlayers;
-  const playersWithDisplayTier = useMemo(
-    () => players.map((p) => ({ ...p, tier: resolveDisplayTier(p, mode) })),
-    [players, mode],
-  );
+  const playersWithDisplayTier = useMemo(() => {
+    if (mode === "overall") {
+      return players.map((p) => ({ ...p, tier: resolveDisplayTier(p, "overall") }));
+    }
+    return players
+      .filter((p) => Boolean(p.modeTiers[mode]))
+      .map((p) => ({ ...p, tier: p.modeTiers[mode]! }));
+  }, [players, mode]);
 
   const grouped = useMemo(() => {
     return TIER_ORDER.reduce<Record<Tier, Player[]>>(

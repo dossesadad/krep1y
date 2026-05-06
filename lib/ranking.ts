@@ -49,6 +49,8 @@ export function comparePlayersForOverall(a: Player, b: Player) {
 
 export function computeOverallTier(player: Player): Tier {
   const counts = tierVectorForPlayer(player);
+  const totalAssigned = counts.reduce((sum, c) => sum + c, 0);
+  if (totalAssigned === 0) return "LT5";
   let bestIdx = TIER_ORDER.length - 1;
   let bestCount = -1;
   for (let i = 0; i < counts.length; i += 1) {
