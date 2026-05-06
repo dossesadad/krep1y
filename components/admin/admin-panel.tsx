@@ -21,6 +21,10 @@ export function AdminPanel({
     type: "idle",
     message: "",
   });
+  const [playerStatus, setPlayerStatus] = useState<{ type: "idle" | "error" | "success"; message: string }>({
+    type: "idle",
+    message: "",
+  });
   const [memberStatus, setMemberStatus] = useState<{ type: "idle" | "error" | "success"; message: string }>({
     type: "idle",
     message: "",
@@ -57,6 +61,29 @@ export function AdminPanel({
       // ignore parsing error
     }
     setStatus({ type: "error", message });
+  };
+
+  const deletePlayer = async (player: Player) => {
+    setPlayerStatus({ type: "idle", message: "" });
+    const res = await fetch(`/api/players?id=${encodeURIComponent(player.id)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      setPlayers((prev) => prev.filter((p) => p.id !== player.id));
+      setPlayerStatus({ type: "success", message: `Deleted player ${player.username}.` });
+      return;
+    }
+
+    let message = "Player delete failed.";
+    try {
+      const data = (await res.json()) as { error?: string };
+      if (data?.error) message = data.error;
+    } catch {
+      // ignore parsing error
+    }
+    setPlayerStatus({ type: "error", message });
   };
 
   const canDeleteMember = (member: AuthUser) => {
@@ -123,13 +150,32 @@ export function AdminPanel({
         <div className="mt-3 grid gap-2">
           {players.map((player) => (
             <article key={player.id} className="rounded border border-border bg-muted p-3">
-              <p className="font-semibold">
-                {player.username} <span className="text-xs text-zinc-400">({player.tier})</span>
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-semibold">
+                  {player.username} <span className="text-xs text-zinc-400">({player.tier})</span>
+                </p>
+                <button
+                  className="rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white"
+                  onClick={() => deletePlayer(player)}
+                >
+                  Delete player
+                </button>
+              </div>
               <p className="text-sm text-zinc-300">{player.description}</p>
             </article>
           ))}
         </div>
+        {playerStatus.type !== "idle" ? (
+          <p
+            className={`mt-3 rounded px-3 py-2 text-sm ${
+              playerStatus.type === "error"
+                ? "border border-red-400/40 bg-red-500/10 text-red-200"
+                : "border border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+            }`}
+          >
+            {playerStatus.message}
+          </p>
+        ) : null}
       </section>
 
       {viewerRole === "owner" || viewerRole === "admin" ? (

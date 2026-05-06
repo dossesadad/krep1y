@@ -47,3 +47,18 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(mapPlayerRow(data));
 }
+
+export async function DELETE(req: Request) {
+  const user = await requireRole(["admin", "owner"]);
+  if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+  const { searchParams } = new URL(req.url);
+  const playerId = searchParams.get("id");
+  if (!playerId) return NextResponse.json({ error: "missing_player_id" }, { status: 400 });
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.from("players").delete().eq("id", playerId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true });
+}
