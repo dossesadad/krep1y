@@ -66,7 +66,14 @@ export async function fetchPlayersOrdered(): Promise<Player[]> {
     .select("player_id, mode, tier")
     .in("player_id", playerIds.length ? playerIds : ["00000000-0000-0000-0000-000000000000"]);
 
-  if (tiersError) {
+  if (
+    tiersError &&
+    !(
+      tiersError.code === "PGRST205" &&
+      (tiersError.message.toLowerCase().includes("player_mode_tiers") ||
+        tiersError.message.toLowerCase().includes("schema cache"))
+    )
+  ) {
     throw new Error(formatSupabaseError(tiersError));
   }
 

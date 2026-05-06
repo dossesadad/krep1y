@@ -8,9 +8,9 @@ function hintForError(message: string): string | null {
   if (
     m.includes("pgrst205") ||
     m.includes("schema cache") ||
-    (m.includes("could not find the table") && m.includes("players"))
+    (m.includes("could not find the table") && (m.includes("players") || m.includes("player_mode_tiers")))
   ) {
-    return "The `players` table has not been created in Supabase yet. Open the Supabase Dashboard → SQL Editor → New query, paste the full file `supabase/migrations/20250506000000_init.sql` from this project, click Run. Then refresh this page.";
+    return "A required table is missing in Supabase. Run both SQL files in Supabase SQL Editor: `supabase/migrations/20250506000000_init.sql` and `supabase/migrations/20250506210000_player_mode_tiers.sql`, then refresh.";
   }
   if (m.includes("relation") && m.includes("does not exist")) {
     return "The `players` table is missing. Open Supabase → SQL Editor and run `supabase/migrations/20250506000000_init.sql`.";
