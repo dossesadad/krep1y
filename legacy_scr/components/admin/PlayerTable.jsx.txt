@@ -1,0 +1,80 @@
+import React from 'react';
+import { TIER_CONFIG, REGIONS } from '@/lib/tierConfig';
+import { useI18n } from '@/lib/i18n';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+export default function PlayerTable({ players, onEdit, onDelete }) {
+  const { t } = useI18n();
+
+  return (
+    <div className="rounded-xl border border-border/50 overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead>{t('tiers.player')}</TableHead>
+            <TableHead>{t('tiers.tier')}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t('tiers.region')}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t('tiers.points')}</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {players.map((player) => {
+            const config = TIER_CONFIG[player.tier] || TIER_CONFIG.D;
+            const region = REGIONS[player.region];
+            return (
+              <TableRow key={player.id} className="hover:bg-muted/30">
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={player.skin_url || `https://mc-heads.net/avatar/${player.username}/32`}
+                      alt={player.username}
+                      className="w-8 h-8 rounded-md"
+                      onError={(e) => { e.target.src = 'https://mc-heads.net/avatar/MHF_Steve/32'; }}
+                    />
+                    <span className="font-medium">{player.username}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge className={`${config.badgeBg} ${config.badgeText} border-0 font-rajdhani font-bold`}>
+                    {player.tier}
+                  </Badge>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  {region && (
+                    <Badge variant="outline" className={`${region.color} border text-xs`}>
+                      {region.label}
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <span className="font-rajdhani font-bold">{player.points || 0}</span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(player)}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onDelete(player)}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}

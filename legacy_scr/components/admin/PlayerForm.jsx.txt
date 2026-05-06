@@ -1,0 +1,121 @@
+import React, { useState, useEffect } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TIER_ORDER, REGIONS } from '@/lib/tierConfig';
+import { Save, X } from 'lucide-react';
+
+export default function PlayerForm({ player, onSave, onCancel, isLoading }) {
+  const { t } = useI18n();
+  const [form, setForm] = useState({
+    username: '',
+    tier: 'C',
+    region: '',
+    description: '',
+    points: 0,
+    skin_url: '',
+  });
+
+  useEffect(() => {
+    if (player) {
+      setForm({
+        username: player.username || '',
+        tier: player.tier || 'C',
+        region: player.region || '',
+        description: player.description || '',
+        points: player.points || 0,
+        skin_url: player.skin_url || '',
+      });
+    }
+  }, [player]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      ...form,
+      points: Number(form.points),
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>{t('admin.username')}</Label>
+          <Input
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            placeholder="e.g. ItzRealMe"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>{t('admin.tier')}</Label>
+          <Select value={form.tier} onValueChange={(v) => setForm({ ...form, tier: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {TIER_ORDER.map((tier) => (
+                <SelectItem key={tier} value={tier}>{tier} Tier</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>{t('admin.region')}</Label>
+          <Select value={form.region} onValueChange={(v) => setForm({ ...form, region: v })}>
+            <SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger>
+            <SelectContent>
+              {Object.entries(REGIONS).map(([key, val]) => (
+                <SelectItem key={key} value={key}>{val.label} — {val.fullName}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>{t('admin.points')}</Label>
+          <Input
+            type="number"
+            value={form.points}
+            onChange={(e) => setForm({ ...form, points: e.target.value })}
+            min={0}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>{t('admin.description')}</Label>
+        <Textarea
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          placeholder="Short description of the player..."
+          className="h-20"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>{t('admin.skinUrl')} (optional)</Label>
+        <Input
+          value={form.skin_url}
+          onChange={(e) => setForm({ ...form, skin_url: e.target.value })}
+          placeholder="https://mc-heads.net/avatar/username/64"
+        />
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <Button type="submit" disabled={isLoading} className="flex-1">
+          <Save className="w-4 h-4 mr-2" />
+          {t('admin.save')}
+        </Button>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            <X className="w-4 h-4 mr-2" />
+            {t('admin.cancel')}
+          </Button>
+        )}
+      </div>
+    </form>
+  );
+}

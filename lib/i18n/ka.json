@@ -1,0 +1,16 @@
+{
+  "nav.home": "მთავარი",
+  "nav.admin": "ადმინი",
+  "nav.login": "შესვლა",
+  "nav.register": "რეგისტრაცია",
+  "hero.title": "Crystal PvP ტიერ სია",
+  "hero.description": "Minecraft Crystal PvP მოთამაშეების კონკურენტული რეიტინგები.",
+  "admin.title": "ადმინის პანელი",
+  "auth.email": "ელფოსტა",
+  "auth.password": "პაროლი",
+  "auth.username": "იუზერნეიმი",
+  "auth.signIn": "შესვლა",
+  "auth.signUp": "ანგარიშის შექმნა",
+  "auth.google": "Google-ით გაგრძელება",
+  "auth.discord": "Discord-ით გაგრძელება"
+}

@@ -1,0 +1,130 @@
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useI18n } from '@/lib/i18n';
+import { useTheme } from '@/lib/ThemeProvider';
+import { useAuth } from '@/lib/AuthContext';
+import { Sun, Moon, Globe, Menu, X, Shield, Trophy, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+export default function Navbar() {
+  const { t, lang, switchLang } = useI18n();
+  const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isAdmin = user?.role === 'admin';
+  const isActive = (path) => location.pathname === path;
+
+  const navLinks = [
+    { path: '/', label: t('nav.home'), icon: Home },
+    { path: '/rankings', label: t('nav.rankings'), icon: Trophy },
+  ];
+
+  if (isAdmin) {
+    navLinks.push({ path: '/admin', label: t('nav.admin'), icon: Shield });
+  }
+
+  return (
+    <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+              <span className="text-white font-rajdhani font-bold text-lg">C</span>
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-rajdhani font-bold text-lg tracking-wide text-foreground">
+                CRYSTAL
+              </span>
+              <span className="font-rajdhani font-bold text-lg tracking-wide text-primary ml-1">
+                TIERS
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive(link.path)
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-2">
+            {/* Language Toggle */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Globe className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => switchLang('en')} className={lang === 'en' ? 'bg-primary/10' : ''}>
+                  🇬🇧 {t('lang.en')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => switchLang('ka')} className={lang === 'ka' ? 'bg-primary/10' : ''}>
+                  🇬🇪 {t('lang.ka')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Theme Toggle */}
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+
+            {/* Mobile Menu */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 md:hidden"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Nav */}
+        {mobileOpen && (
+          <div className="md:hidden pb-4 border-t border-border/50 mt-2 pt-3 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                  isActive(link.path)
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}

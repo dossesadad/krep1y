@@ -1,0 +1,51 @@
+import React from 'react';
+import { TIER_CONFIG } from '@/lib/tierConfig';
+import { useI18n } from '@/lib/i18n';
+import PlayerCard from './PlayerCard';
+import { motion } from 'framer-motion';
+
+export default function TierSection({ tier, players }) {
+  const { t } = useI18n();
+  const config = TIER_CONFIG[tier] || TIER_CONFIG.D;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="relative"
+    >
+      {/* Tier Header */}
+      <div className={`flex items-center gap-4 mb-4 pb-3 border-b ${config.borderColor}`}>
+        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${config.color} flex items-center justify-center shadow-lg ${config.glowColor}`}>
+          <span className="text-white font-rajdhani font-black text-2xl">{tier}</span>
+        </div>
+        <div>
+          <h2 className={`font-rajdhani font-bold text-xl ${config.textColor}`}>
+            {t(`tierNames.${tier}`)}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            {players.length} {players.length === 1 ? 'player' : 'players'}
+          </p>
+        </div>
+      </div>
+
+      {/* Player List */}
+      <div className="space-y-2">
+        {players.length > 0 ? (
+          players.map((player, index) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              rank={index + 1}
+            />
+          ))
+        ) : (
+          <div className={`text-center py-8 rounded-xl border border-dashed ${config.borderColor} ${config.bgColor}`}>
+            <p className="text-sm text-muted-foreground">{t('tiers.noPlayers')}</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}

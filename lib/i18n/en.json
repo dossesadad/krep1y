@@ -1,0 +1,16 @@
+{
+  "nav.home": "Home",
+  "nav.admin": "Admin",
+  "nav.login": "Login",
+  "nav.register": "Register",
+  "hero.title": "Crystal PvP Tier Lists",
+  "hero.description": "Competitive rankings for Minecraft Crystal PvP players.",
+  "admin.title": "Admin Dashboard",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.username": "Username",
+  "auth.signIn": "Sign In",
+  "auth.signUp": "Create Account",
+  "auth.google": "Continue with Google",
+  "auth.discord": "Continue with Discord"
+}

@@ -1,0 +1,71 @@
+import React from 'react';
+import { TIER_CONFIG, REGIONS } from '@/lib/tierConfig';
+import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
+
+export default function PlayerCard({ player, rank, showTier = false }) {
+  const tierConfig = TIER_CONFIG[player.tier] || TIER_CONFIG.D;
+  const region = REGIONS[player.region];
+
+  const skinUrl = player.skin_url || 
+    `https://mc-heads.net/avatar/${player.username}/64`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`group relative flex items-center gap-4 px-4 py-3 rounded-xl border transition-all duration-300 
+        bg-card/60 hover:bg-card border-border/50 hover:border-border hover:shadow-lg ${tierConfig.glowColor}`}
+    >
+      {/* Rank Number */}
+      {rank && (
+        <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${tierConfig.color} flex items-center justify-center`}>
+          <span className="text-white font-rajdhani font-bold text-lg">{rank}</span>
+        </div>
+      )}
+
+      {/* Player Skin */}
+      <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-muted/50 border border-border/50">
+        <img
+          src={skinUrl}
+          alt={player.username}
+          className="w-full h-full object-cover"
+          onError={(e) => { e.target.src = `https://mc-heads.net/avatar/MHF_Steve/64`; }}
+        />
+      </div>
+
+      {/* Player Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-foreground truncate">{player.username}</h3>
+          {showTier && (
+            <Badge className={`${tierConfig.badgeBg} ${tierConfig.badgeText} border-0 text-xs font-rajdhani font-bold`}>
+              {player.tier}
+            </Badge>
+          )}
+        </div>
+        {player.description && (
+          <p className="text-xs text-muted-foreground truncate mt-0.5">{player.description}</p>
+        )}
+      </div>
+
+      {/* Region Badge */}
+      {region && (
+        <Badge variant="outline" className={`${region.color} border text-xs font-bold flex-shrink-0`}>
+          {region.label}
+        </Badge>
+      )}
+
+      {/* Points */}
+      {player.points > 0 && (
+        <div className="hidden sm:flex flex-col items-end flex-shrink-0">
+          <span className={`font-rajdhani font-bold text-lg ${tierConfig.textColor}`}>
+            {player.points}
+          </span>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">pts</span>
+        </div>
+      )}
+    </motion.div>
+  );
+}
