@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
   env: {
     ...(supabaseUrl ? { NEXT_PUBLIC_SUPABASE_URL: supabaseUrl } : {}),
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "crafatar.com",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

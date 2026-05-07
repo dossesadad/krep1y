@@ -1,7 +1,10 @@
 "use client";
 
 import { Player } from "@/types";
+import Image from "next/image";
 import { MODE_WITHOUT_OVERALL } from "@/lib/constants";
+import { GAME_MODE_LABELS } from "@/lib/constants";
+import { MinecraftAvatar } from "@/components/common/minecraft-avatar";
 
 export function PlayerCard({
   player,
@@ -16,34 +19,45 @@ export function PlayerCard({
   showModeBadges?: boolean;
   totalPoints?: number;
 }) {
+  const modeBadges = MODE_WITHOUT_OVERALL.filter((mode) => Boolean(player.modeTiers[mode]));
+
   return (
     <article
-      className="grid grid-cols-[52px_40px_1fr_auto] items-center gap-2 rounded-md border border-[#273055] bg-[#111a38] px-2 py-1.5 transition hover:border-[#3f4f84]"
+      className="group grid grid-cols-[52px_40px_1fr_auto_auto] items-center gap-2 rounded-md border border-[#3b1212] bg-[#1a0b0b] px-2 py-1.5 transition hover:border-[#5a1d1d]"
     >
       <div className="font-heading text-2xl font-bold leading-none text-zinc-200">{rank ? `${rank}.` : "#"}</div>
-      <div className="grid h-8 w-8 place-items-center rounded bg-[#273055] text-[10px] text-zinc-300">SK</div>
+      <div className="transition-transform duration-150 group-hover:scale-105">
+        <MinecraftAvatar username={player.username} size={32} />
+      </div>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <h3 className="truncate text-sm font-semibold text-zinc-100">{player.username}</h3>
-          {showTier ? (
-            <span className="rounded bg-yellow-400/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-300">
-              {player.tier}
-            </span>
-          ) : null}
         </div>
         <p className="truncate text-[11px] text-zinc-400">{player.description}</p>
-        {showModeBadges ? (
-          <div className="mt-1 flex flex-wrap gap-1">
-            {MODE_WITHOUT_OVERALL.map((mode) =>
-              player.modeTiers[mode] ? (
-                <span key={mode} className="rounded bg-[#24376b] px-1.5 py-0.5 text-[10px] uppercase text-zinc-200">
-                  {mode}:{player.modeTiers[mode]}
-                </span>
-              ) : null,
-            )}
-          </div>
-        ) : null}
       </div>
+      {showModeBadges ? (
+        <div className="flex items-center gap-2.5 pr-1">
+          {modeBadges.map((mode) => (
+            <div key={mode} className="flex min-w-[44px] flex-col items-center">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1f2b56]">
+                <Image
+                  src={`/${GAME_MODE_LABELS[mode]}.png`}
+                  alt={GAME_MODE_LABELS[mode]}
+                  width={22}
+                  height={22}
+                  className="h-[22px] w-[22px] object-contain"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              </div>
+              <span className="mt-1 text-[11px] font-semibold uppercase leading-none text-zinc-300">
+                {player.modeTiers[mode]}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className="flex flex-col items-end gap-1">
         {typeof totalPoints === "number" ? (
           <span className="rounded bg-[#29487c] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200">
